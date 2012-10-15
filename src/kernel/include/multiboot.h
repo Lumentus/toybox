@@ -19,8 +19,8 @@
  *  IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef MULTIBOOT_HEADER
-#define MULTIBOOT_HEADER
+#ifndef MULTIBOOT_H
+#define MULTIBOOT_H
 
 
 #include <stdint.h>
@@ -143,4 +143,4 @@ typedef struct multiboot_mod_list
 } multiboot_module_t;
 
 
-#endif // MULTIBOOT_HEADER
+#endif // MULTIBOOT_H

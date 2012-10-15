@@ -3,6 +3,18 @@
 #include "multiboot.h"
 #include "console.h"
 
+// TODO: list
+// - higher half kernel
+// - pysical memory manager
+// - paging
+// - virtual memory manager
+// - gdt
+// - idt
+// - panic function
+// - improve Makefile
+// - document for C99 standard
+// - compiler development? :D
+
 void kmain(uint32_t magic, multiboot_info_t *mb_info)
 {
     kclear();
@@ -15,7 +27,6 @@ void kmain(uint32_t magic, multiboot_info_t *mb_info)
 
     kprintf("Welcome to ToyBox!\n\n");
 
-    kprintf("mem_upper: %x\n", mb_info->mem_upper);
     kprintf("kernel size: %u kB\n", (uint32_t)&kernel_size / 1024);
 
     while (1);

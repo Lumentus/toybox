@@ -12,6 +12,8 @@
 #define X_MAX 80
 #define Y_MAX 25
 
+#define BLANK 0x20
+
 #define COLOR_BLACK         0x0
 #define COLOR_BLUE          0x1
 #define COLOR_GREEN         0x2
@@ -61,7 +63,7 @@ void kclear()
 
     for (i = 0; i < Y_MAX * X_MAX; i++)
     {
-        videoram[i] = code(0, DEF_TEXT, DEF_BACK);
+        videoram[i] = code(BLANK, DEF_TEXT, DEF_BACK);
     }
 
     pos_x = pos_y = 0;
@@ -77,7 +79,7 @@ static void scroll()
 
     for (i = (Y_MAX - 1) * X_MAX; i < Y_MAX * X_MAX; i++)
     {
-        videoram[i] = code(0, DEF_TEXT, DEF_BACK);
+        videoram[i] = code(BLANK, DEF_TEXT, DEF_BACK);
     }
 
     pos_y--;
