@@ -6,6 +6,7 @@
     panic("PANIC: %s:%d:%s", __FILE__, __LINE__, msg); \
     while (1);
 
+// Defined in kernel.ld.
 extern const void kernel_start;
 extern const void kernel_v_start;
 

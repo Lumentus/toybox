@@ -2,6 +2,7 @@
 #include <stdint.h>
 #include "multiboot.h"
 #include "console.h"
+#include "pmm.h"
 
 // TODO: list
 // - higher half kernel
@@ -12,6 +13,7 @@
 // - idt
 // - panic function
 // - improve Makefile
+// - seperate section for ro kernel data
 // - document for C99 standard
 // - compiler development? :D
 
@@ -25,9 +27,10 @@ void kmain(uint32_t magic, multiboot_info_t *mb_info)
         return;
     }
 
-    kprintf("Welcome to ToyBox!\n\n");
+    kprintf("Welcome to ToyBox!\n");
+    kprintf("kernel size: %u kB\n\n", (uint32_t)&kernel_size / 1024);
 
-    kprintf("kernel size: %u kB\n", (uint32_t)&kernel_size / 1024);
+    pmm_init(mb_info);
 
     while (1);
 }
