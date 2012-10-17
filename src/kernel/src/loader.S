@@ -25,6 +25,7 @@ loader:
     call init_boot_paging
 
     add esp, KERNEL_OFFSET              ; paging enabled, use the virtual address
+    add ebx, KERNEL_OFFSET
     mov ebp, esp
 
     push ebx                            ; multiboot info structure

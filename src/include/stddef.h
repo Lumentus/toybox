@@ -7,11 +7,10 @@
 // Signed integer type of the result of subtracting two pointers.
 typedef int ptrdiff_t;
 
-// Integer type whose range of values can represent
-// distinct wide-character codes.
+// Integer type whose value can represent distinct wide-character codes.
 typedef unsigned int wchar_t;
 
-// Unsigned integer type of the result of the sizeof operator
+// Unsigned integer type of the result of the sizeof operator.
 typedef unsigned int size_t;
 
 /* offsetof(type, member-designator)
