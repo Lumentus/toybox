@@ -61,23 +61,23 @@ typedef struct vmm_context
 static vmm_context_t *kernel_context;
 
 // Aligns an address on a multiple of PAGE_SIZE, rounding up.
-static inline uint32_t align_up(uint32_t addr)
+static inline uint32_t __align_up(uint32_t addr)
 {
     return (addr + ~PE_FRAME) & PE_FRAME;
 }
 
 // Aligns an address on a multiple of PAGE_SIZE, rounding down.
-static inline uint32_t align_down(uint32_t addr)
+static inline uint32_t __align_down(uint32_t addr)
 {
     return addr & PE_FRAME;
 }
 
-static inline unsigned get_pd_idx(uint32_t addr)
+static inline unsigned __get_pd_idx(uint32_t addr)
 {
     return addr >> PD_RSHIFT;
 }
 
-static inline unsigned get_pt_idx(uint32_t addr)
+static inline unsigned __get_pt_idx(uint32_t addr)
 {
     return (addr >> PT_RSHIFT) & ~PE_FRAME;
 }
@@ -103,8 +103,8 @@ static page_table_t create_page_table()
 static void map_page(vmm_context_t *context, uint32_t v_addr, uint32_t p_addr)
 {
     // TODO: flags
-    unsigned pd_idx = get_pd_idx(v_addr);
-    unsigned pt_idx = get_pt_idx(v_addr);
+    unsigned pd_idx = __get_pd_idx(v_addr);
+    unsigned pt_idx = __get_pt_idx(v_addr);
     page_directory_t pd = context->page_directory;
     page_table_t pt = (uint32_t *)(pd[pd_idx] & PE_FRAME);
 
@@ -119,7 +119,7 @@ static void map_page(vmm_context_t *context, uint32_t v_addr, uint32_t p_addr)
         PANIC("Already mapped!");
     }
 
-    pt[pt_idx] = ((uint32_t)p_addr) | PE_PRESENT; // (flags & 0xFFF)
+    pt[pt_idx] = ((uint32_t)p_addr) | PE_PRESENT; // (flags & ~PE_FRAME)
 
     // TODO: flush the entry in the TLB, if paging is already activated
 
@@ -129,9 +129,9 @@ static void map_page(vmm_context_t *context, uint32_t v_addr, uint32_t p_addr)
 
 static void map_memory(vmm_context_t *context, uint32_t v_addr_start, uint32_t p_addr_start, uint32_t p_addr_end)
 {
-    p_addr_start = align_down(p_addr_start);
-    v_addr_start = align_down(v_addr_start);
-    p_addr_end = align_up(p_addr_end);
+    p_addr_start = __align_down(p_addr_start);
+    v_addr_start = __align_down(v_addr_start);
+    p_addr_end = __align_up(p_addr_end);
 
     while (p_addr_start < p_addr_end)
     {
@@ -143,10 +143,10 @@ static void map_memory(vmm_context_t *context, uint32_t v_addr_start, uint32_t p
 
 static void identity_map(vmm_context_t *context, uint32_t p_addr_start, uint32_t p_addr_end)
 {
-    p_addr_start = align_down(p_addr_start);
-    p_addr_end = align_up(p_addr_end);
-    unsigned pd_idx = get_pd_idx(p_addr_start);
-    unsigned pt_idx = get_pt_idx(p_addr_start);
+    p_addr_start = __align_down(p_addr_start);
+    p_addr_end = __align_up(p_addr_end);
+    unsigned pd_idx = __get_pd_idx(p_addr_start);
+    unsigned pt_idx = __get_pt_idx(p_addr_start);
     page_directory_t pd = context->page_directory;
     page_table_t pt = (uint32_t *)(pd[pd_idx] & PE_FRAME);
 
@@ -179,12 +179,12 @@ static void identity_map(vmm_context_t *context, uint32_t p_addr_start, uint32_t
 //    // TODO: implement
 //}
 
-//static inline void switch_page_directory(vmm_context_t *context)
+//static inline void __switch_page_directory(vmm_context_t *context)
 //{
 //    asm volatile("mov %0, %%cr3" : : "r" (context->page_directory));
 //}
 
-//static inline void activate_paging()
+//static inline void __activate_paging()
 //{
 //    uint32_t cr0;
 //    asm volatile("mov %%cr0, %0" : "=r" (cr0));
@@ -213,9 +213,9 @@ void paging_init()
 
 //    register_interrupt_handler(INT_PAGE_FAULT, page_fault_callback);
 //
-//    switch_page_directory(kernel_context);
+//    __switch_page_directory(kernel_context);
 //
-//    activate_paging();
+//    __activate_paging();
 }
 
 

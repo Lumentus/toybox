@@ -9,8 +9,6 @@
 #define ELEMENT_SIZE (8 * sizeof(uint_fast32_t))
 #define FRAME_MASK ~(FRAME_SIZE - 1)
 
-// TODO: Addresses as (void *)?
-
 // Bitmap, one bit per frame while 1 is reserved and 0 is free.
 static uint_fast32_t *bitmap;
 // Last allocated frame, used as a start point to look for free frames.
@@ -19,33 +17,33 @@ static uintptr_t last_alloc_frame = 0;
 static size_t bitmap_length;
 
 // Aligns an address on a multiple of FRAME_SIZE, rounding up.
-static inline uintptr_t align_up(uintptr_t addr)
+static inline uintptr_t __align_up(uintptr_t addr)
 {
     return (addr + ~FRAME_MASK) & FRAME_MASK;
 }
 
 // Aligns an address on a multiple of FRAME_SIZE, rounding down.
-static inline uintptr_t align_down(uintptr_t addr)
+static inline uintptr_t __align_down(uintptr_t addr)
 {
     return addr & FRAME_MASK;
 }
 
 // Marks a frame as reserved.
-static inline void frame_mark_used(unsigned bm_idx, uint_fast32_t bit)
+static inline void __frame_mark_used(unsigned bm_idx, uint_fast32_t bit)
 {
     bitmap[bm_idx] |= bit;
 }
 
 // Marks a frame as free.
-static inline void frame_mark_free(unsigned bm_idx, uint_fast32_t bit)
+static inline void __frame_mark_free(unsigned bm_idx, uint_fast32_t bit)
 {
     bitmap[bm_idx] &= ~bit;
 }
 
 // Calculates the amount of frames a memory block needs.
-static inline size_t get_frames(uintptr_t addr_start, uintptr_t addr_end)
+static inline size_t __get_frames(uintptr_t addr_start, uintptr_t addr_end)
 {
-    return (align_up(addr_end) - align_down(addr_start)) / FRAME_SIZE;
+    return (__align_up(addr_end) - __align_down(addr_start)) / FRAME_SIZE;
 }
 
 // Marks an amount of frames as used, starting at addr.
@@ -59,7 +57,7 @@ static void frame_mark_range_used(uintptr_t addr, size_t frames)
 
     while (frames--)
     {
-        frame_mark_used(bm_idx, bit);
+        __frame_mark_used(bm_idx, bit);
         bit <<= 1;
 
         if (bit == 0)
@@ -81,7 +79,7 @@ void free_frame(uintptr_t addr, size_t frames)
 
     while (frames--)
     {
-        frame_mark_free(bm_idx, bit);
+        __frame_mark_free(bm_idx, bit);
         bit <<= 1;
 
         if (bit == 0)
@@ -103,7 +101,7 @@ void* alloc_frame(size_t frames)
 
     for (; bm_idx < bitmap_length; bm_idx++)
     {
-        if (bitmap[bm_idx] == ~0U)
+        if (bitmap[bm_idx] == ~(uint_fast32_t)0)
         {
             size = 0;
             continue;
@@ -217,7 +215,7 @@ static void process_memory_map(multiboot_info_t *mb_info)
             addr_start = mmap->addr;
             addr_end = addr_start + mmap->len;
 
-            free_frame(addr_start, get_frames(addr_start, addr_end));
+            free_frame(addr_start, __get_frames(addr_start, addr_end));
         }
 
         mmap++;
@@ -243,27 +241,27 @@ void pmm_init(multiboot_info_t *mb_info)
     process_memory_map(mb_info);
 
     frame_mark_range_used((uintptr_t)bitmap,
-        get_frames((uintptr_t)bitmap, (uintptr_t)bitmap + bitmap_size));
+        __get_frames((uintptr_t)bitmap, (uintptr_t)bitmap + bitmap_size));
 
     frame_mark_range_used((uintptr_t)&kernel_start,
-        get_frames((uintptr_t)&kernel_start, (uintptr_t)&kernel_end));
+        __get_frames((uintptr_t)&kernel_start, (uintptr_t)&kernel_end));
 
     frame_mark_range_used((uintptr_t)mb_info,
-        get_frames((uintptr_t)mb_info, (uintptr_t)(mb_info + 1)));
+        __get_frames((uintptr_t)mb_info, (uintptr_t)(mb_info + 1)));
 
     for (i = 0; i < mb_info->mods_count; i++, mod++)
     {
         frame_mark_range_used((uintptr_t)mod,
-            get_frames((uintptr_t)mod, (uintptr_t)(mod + 1)));
+            __get_frames((uintptr_t)mod, (uintptr_t)(mod + 1)));
 
         frame_mark_range_used(mod->mod_start,
-            get_frames(mod->mod_start, mod->mod_end));
+            __get_frames(mod->mod_start, mod->mod_end));
 
         if (mod->cmdline)
         {
             frame_mark_range_used(
                 mod->cmdline,
-                get_frames(
+                __get_frames(
                     mod->cmdline,
                     mod->cmdline + strlen((char *)mod->cmdline)
                 )

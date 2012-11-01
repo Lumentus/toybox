@@ -14,8 +14,6 @@
 // - improve Makefile
 // - seperate section for ro kernel data
 // - multiboot header for asm files
-// - document for C99 standard
-// - compiler development? :D
 
 void kmain(uint32_t magic, multiboot_info_t *mb_info)
 {
