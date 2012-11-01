@@ -1,6 +1,6 @@
 /*
 FUNCTION
-	<void* memcpy>
+    <void* memcpy>
     void *dst
     const void *src
     size_t n
@@ -14,7 +14,7 @@ DESCRIPTION
     is undefined.
 
 RETURNS
-	Returns dst; no return value is reserved to indicate an error.
+    Returns dst; no return value is reserved to indicate an error.
 */
 
 #include <string.h>

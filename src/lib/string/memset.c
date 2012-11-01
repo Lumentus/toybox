@@ -1,7 +1,7 @@
 /*
 FUNCTION
-	<void* memset>
-    void *dst
+    <void* memset>
+    void *s
     int c
     size_t n
 
@@ -10,22 +10,22 @@ INCLUDES
 
 DESCRIPTION
     Copies c (unsigned char) into each of the first n bytes of the object
-    pointed to by dst.
+    pointed to by s.
 
 RETURNS
-    Returns dst; no return value is reserved to indicate an error.
+    Returns s; no return value is reserved to indicate an error.
 */
 
 #include <string.h>
 
-void* memset(void *dst0, int c, size_t n)
+void* memset(void *s0, int c, size_t n)
 {
-    char *dst = dst0;
+    char *s = s0;
 
     while (n--)
     {
-        *dst++ = (char)c;
+        *s++ = (char)c;
     }
 
-    return dst0;
+    return s0;
 }
