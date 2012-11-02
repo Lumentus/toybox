@@ -2,7 +2,9 @@
 #include <stdint.h>
 #include <string.h>
 #include "kernel.h"
+#include "multiboot.h"
 #include "pmm.h"
+#include "interrupt.h"
 #include "console.h"
 
 /*
@@ -25,7 +27,7 @@ page directory entry
 page table entry
     dirty    : 1;    0: not 1: written to
     null     : 1;    usually 0
-    global   : 1;    0: not 1: prevent TLB from updating the adress in it's cache on cr3 reset
+    global   : 1;    0: not 1: prevent TLB from updating the cache on cr3 reset
 */
 
 #define PE_PRESENT  0x01
@@ -179,66 +181,56 @@ static void identity_map(vmm_context_t *context, uint32_t p_addr_start, uint32_t
 //    // TODO: implement
 //}
 
-//static inline void __switch_page_directory(vmm_context_t *context)
-//{
-//    asm volatile("mov %0, %%cr3" : : "r" (context->page_directory));
-//}
+static inline void __switch_page_directory(vmm_context_t *context)
+{
+    asm volatile("mov %0, %%cr3" : : "r" (context->page_directory));
+}
 
-//static inline void __activate_paging()
-//{
-//    uint32_t cr0;
-//    asm volatile("mov %%cr0, %0" : "=r" (cr0));
-//    cr0 |= 0x80000000;
-//    asm volatile("mov %0, %%cr0" : : "r" (cr0));
-//}
+static void activate_paging()
+{
+    uint32_t cr0;
+    asm volatile("mov %%cr0, %0" : "=r" (cr0));
+    cr0 |= 0x80000000;
+    asm volatile("mov %0, %%cr0" : : "r" (cr0));
+}
 
-//static void page_fault_callback(cpu_state_t cpu)
-//{
-//    uint32_t addr;
-//    asm volatile("mov %%cr2, %0" : "=r" (addr));
-//
-//    kprintf("page fault (0x%x) at 0x%x\n", cpu.error, addr);
-//    PANIC("Page fault!");
-//}
+static void page_fault_callback(cpu_state_t cpu)
+{
+    uint32_t addr;
+    asm volatile("mov %%cr2, %0" : "=r" (addr));
 
-void paging_init()
+    kprintf("\n\npage fault (0x%x) at 0x%x", cpu.error, addr);
+    PANIC("Page fault!");
+}
+
+void paging_register_interrupt()
+{
+    register_interrupt_handler(INT_PAGE_FAULT, page_fault_callback);
+}
+
+void paging_init(multiboot_info_t *mb_info)
 {
     kernel_context = alloc_frame(1);
     page_directory_t pd = create_page_directory();
     kernel_context->page_directory = pd;
 
+    // TODO: Map the page directory.
 
-    // TODO: Do the mapping here.
+    map_memory(kernel_context, (uintptr_t)&kernel_v_start,
+        (uintptr_t)&kernel_start, (uintptr_t)&kernel_end);
 
+    identity_map(kernel_context, pmm_get_bitmap(),
+        pmm_get_bitmap() + pmm_get_bitmap_size());
 
-//    register_interrupt_handler(INT_PAGE_FAULT, page_fault_callback);
-//
-//    __switch_page_directory(kernel_context);
-//
-//    __activate_paging();
+    map_memory(kernel_context, (uintptr_t)mb_info,
+        (uintptr_t)mb_info - (uintptr_t)&kernel_offset,
+        (uintptr_t)mb_info - (uintptr_t)&kernel_offset +
+            sizeof(multiboot_info_t));
+
+    identity_map(kernel_context, 0x0, 0x00400000);
+//    identity_map(kernel_context, 0xB8000, 0xBFFFF);
+
+    __switch_page_directory(kernel_context);
+
+    activate_paging();
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

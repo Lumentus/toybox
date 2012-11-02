@@ -146,7 +146,7 @@ void* alloc_frame(size_t frames)
         if (size >= frames)
         {
             frame_mark_range_used(addr, frames);
-            last_alloc_frame = addr + (frames * 0x1000);
+            last_alloc_frame = addr + (frames * FRAME_SIZE);
 
             return (void *)addr;
         }
@@ -188,10 +188,9 @@ static void* find_free_mem(multiboot_info_t *mb_info, size_t size)
 
     while (mmap < mmap_end)
     {
-        if (mmap->type == 1)
+        if (mmap->type == 1 && mmap->len >= size)
         {
             // TODO: Check for reserved memory blocks.
-            size++;
             return (void *)((uintptr_t)mmap->addr);
         }
 
@@ -222,6 +221,24 @@ static void process_memory_map(multiboot_info_t *mb_info)
     }
 }
 
+// Returns the address of the bitmap.
+uintptr_t pmm_get_bitmap()
+{
+    return (uintptr_t)bitmap;
+}
+
+// Sets the address of the bitmap.
+void pmm_set_bitmap(uintptr_t addr)
+{
+    bitmap = (uint_fast32_t *)addr;
+}
+
+// Returns the size of the bitmap in bytes.
+size_t pmm_get_bitmap_size()
+{
+    return bitmap_length * sizeof(uint_fast32_t);
+}
+
 // Initialises the physical memory manager.
 void pmm_init(multiboot_info_t *mb_info)
 {
@@ -236,36 +253,43 @@ void pmm_init(multiboot_info_t *mb_info)
     kprintf("&multiboot: 0x%x\n", (uintptr_t)mb_info);
     kprintf("mods_count: %u\n", mb_info->mods_count);
 
-    memset(bitmap, 0xFFFF, bitmap_size);
+    // Set everything as reserved.
+    memset(bitmap, 0xFF, bitmap_size);
 
+    // Marks usable space as free.
     process_memory_map(mb_info);
 
+    // Reserve space for the bitmap.
     frame_mark_range_used((uintptr_t)bitmap,
         __get_frames((uintptr_t)bitmap, (uintptr_t)bitmap + bitmap_size));
 
+    // Reserve space for the kernel.
     frame_mark_range_used((uintptr_t)&kernel_start,
         __get_frames((uintptr_t)&kernel_start, (uintptr_t)&kernel_end));
 
+    // Reserve space for the multiboot_info.
     frame_mark_range_used((uintptr_t)mb_info,
         __get_frames((uintptr_t)mb_info, (uintptr_t)(mb_info + 1)));
 
+    // Reserve space for the multiboot modules.
     for (i = 0; i < mb_info->mods_count; i++, mod++)
     {
+        // The Multiboot-info of the module.
         frame_mark_range_used((uintptr_t)mod,
             __get_frames((uintptr_t)mod, (uintptr_t)(mod + 1)));
 
+        // The module itself.
         frame_mark_range_used(mod->mod_start,
             __get_frames(mod->mod_start, mod->mod_end));
 
+        // The commandline of the module.
         if (mod->cmdline)
         {
             frame_mark_range_used(
                 mod->cmdline,
                 __get_frames(
                     mod->cmdline,
-                    mod->cmdline + strlen((char *)mod->cmdline)
-                )
-            );
+                    mod->cmdline + strlen((char *)mod->cmdline)));
         }
     }
 }

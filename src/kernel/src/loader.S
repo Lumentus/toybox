@@ -6,15 +6,17 @@ extern kmain                            ; kmain, defined in kernel.c
 STACKSIZE equ 0x4000                    ; 16kB
 
 ; setting up the Multiboot header
-MODULEALIGN equ  1<<0                   ; align loaded modules on page boundaries
+MODULEALIGN equ  1<<0                   ; align loaded modules
 MEMINFO     equ  1<<1                   ; provide memory map
 FLAGS       equ  MODULEALIGN | MEMINFO  ; multiboot flag field
-MAGIC       equ  0x1BADB002             ; magic number, lets bootloader find the header
+MAGIC       equ  0x1BADB002             ; magic number for the bootloader
 CHECKSUM    equ -(MAGIC + FLAGS)        ; checksum
 
 ; needed for boot paging
-KERNEL_OFFSET equ 0xC0000000
-KERNEL_PD_IDX equ (KERNEL_OFFSET >> 22)
+KERNEL_OFFSET   equ  0xC0000000
+KERNEL_PD_IDX   equ  (KERNEL_OFFSET >> 22)
+PAGES_START     equ  2
+PAGES_KERNEL    equ  1
 
 
 section .text
@@ -24,7 +26,7 @@ loader:
 
     call init_boot_paging
 
-    add esp, KERNEL_OFFSET              ; paging enabled, use the virtual address
+    add esp, KERNEL_OFFSET              ; paging enabled, use virtual address
     add ebx, KERNEL_OFFSET
     mov ebp, esp
 
@@ -39,7 +41,7 @@ loader:
 
 init_boot_paging:
     mov ecx, (BootPageDirectory - KERNEL_OFFSET)
-    mov cr3, ecx                        ; load page directory at physical address
+    mov cr3, ecx                        ; load pd at physical address
 
     mov ecx, cr4
     or ecx, 0x00000010                  ; enable 4MB pages
@@ -52,7 +54,7 @@ init_boot_paging:
     ret
 
 
-section .multiboot                      ; multiboot-header must be in first 8kB
+section .multiboot                      ; multiboot-header in first 8kB
 align 4
     dd MAGIC
     dd FLAGS
@@ -62,10 +64,10 @@ align 4
 section .data
 align 0x1000
 BootPageDirectory:
-    dd 0x00000083                       ; map first 4MB
-    times (KERNEL_PD_IDX - 1) dd 0      ; empty pages before the kernel
-    dd 0x00000083                       ; map 4MB for the kernel
-    times (0x1000 - KERNEL_PD_IDX - 1) dd 0 ; empty pages after the kernel
+    times (PAGES_START) dd 0x00000083                   ; map first pages
+    times (KERNEL_PD_IDX - PAGES_START) dd 0            ; empty pages
+    times (PAGES_KERNEL) dd 0x00000083                  ; map kernel
+    times (0x1000 - KERNEL_PD_IDX - PAGES_KERNEL) dd 0  ; empty pages
 
 
 section .bss

@@ -9,6 +9,9 @@
 
 void free_frame(uintptr_t addr, size_t frames);
 void* alloc_frame(size_t frames);
+uintptr_t pmm_get_bitmap();
+void pmm_set_bitmap(uintptr_t addr);
+size_t pmm_get_bitmap_size();
 void pmm_init(multiboot_info_t *mb_info);
 
 
