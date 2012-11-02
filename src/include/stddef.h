@@ -5,10 +5,10 @@
 #define NULL ((void *)0)
 
 // Signed integer type of the result of subtracting two pointers.
-typedef int ptrdiff_t;
+typedef signed int ptrdiff_t;
 
 // Integer type whose value can represent distinct wide-character codes.
-typedef unsigned int wchar_t;
+typedef int wchar_t;
 
 // Unsigned integer type of the result of the sizeof operator.
 typedef unsigned int size_t;
