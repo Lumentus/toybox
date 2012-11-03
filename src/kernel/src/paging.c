@@ -193,14 +193,19 @@ static void identity_map(vmm_context_t *context, uint32_t p_addr_start, uint32_t
     }
 }
 
-//void* alloc_page(uint32_t pages)
+//void* alloc_page(size_t pages)
 //{
 //    // TODO: implement
+//    pages++;
+//    return VMM_NO_MEM;
 //}
 
-//void free_page(void *start, uint32_t pages)
+//void free_page(void *start, size_t pages)
 //{
 //    // TODO: implement
+//    start++;
+//    pages++;
+//    return;
 //}
 
 static inline void __switch_page_directory(vmm_context_t *context)

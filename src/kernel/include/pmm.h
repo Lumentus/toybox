@@ -5,7 +5,7 @@
 #include <stdint.h>
 #include "multiboot.h"
 
-#define PMM_NO_MEM (void *)0xDEADC0DE
+#define PMM_NO_MEM ((void *)0x13579B00)
 
 void free_frame(uintptr_t addr, size_t frames);
 void* alloc_frame(size_t frames);

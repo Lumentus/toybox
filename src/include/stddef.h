@@ -2,6 +2,8 @@
 #define _STDDEF_H
 
 
+// ISO C standard NULL
+// POSIX.1-2008 NULL ((void *)0)
 #define NULL ((void *)0)
 
 typedef signed int ptrdiff_t;

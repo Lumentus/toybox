@@ -9,6 +9,7 @@
 #include "idt.h"
 
 // TODO: list
+// - restrict
 // - reserve first 4MB?
 // - paging
 // - virtual memory manager

@@ -15,6 +15,9 @@ DESCRIPTION
 
 RETURNS
     Returns dst; no return value is reserved to indicate an error.
+
+ERRORS
+    No errors are defined.
 */
 
 #include <string.h>
