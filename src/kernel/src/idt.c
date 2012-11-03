@@ -1,6 +1,55 @@
 #include <stdint.h>
 #include "ports.h"
 
+/*
+idt descriptor
+    15      0
+    +---+---+
+    | size  |
+    +---+---+---+---+
+    |    offset     |
+    +---+---+---+---+
+
+size
+    Defines the length of the IDT in bytes (minimum value is 100h).
+offset
+    Physical address where the IDT starts (INT 0).
+
+idt entry
+    31                              0
+    +-------+-------+-------+-------+
+    |   selector    |  offset 0:15  |
+    +-------+-------+-------+-------+
+    | offset 16:31  | flags | zero  |
+    +-------+-------+-------+-------+
+
+offset
+    Interrupt function's offset address (pointer).
+selector
+    Selector of the interrupt function (to make sense - the kernel's selector).
+    The selector's descriptor's DPL field has to be 0.
+zero
+    Have to be 0.
+
+flags
+      7                           0
+    +---+---+---+---+---+---+---+---+
+    | P | S |  DPL  |   Gate Type   |
+    +---+---+---+---+---+---+---+---+
+
+Gate Type
+    0x5 - 80386 32 bit Task gate
+    0x6 - 80286 16-bit interrupt gate
+    0x7 - 80286 16-bit trap gate
+    0xE - 80386 32-bit interrupt gate
+    0xF - 80386 32-bit trap gate
+S   Storage Segment, 0 for interrupt gates.
+DPL Descriptor Privilege Level, Gate call protection.
+    Specifies which privilege level the calling descriptor minimum should have.
+P   Can be set to 0 for unused interrupts or for Paging.
+
+*/
+
 #define IDT_ENTRIES 256
 
 #define CAST_ENTRY(x) (*((uint64_t *)&((x))))

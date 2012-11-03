@@ -1,6 +1,6 @@
 /*
 FUNCTION
-    <size_t strlen>
+    [size_t strlen]
     const char *s
 
 INCLUDES

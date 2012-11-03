@@ -8,26 +8,48 @@
 #include "console.h"
 
 /*
+
 directory entry & table entry
-    present  : 1;    0: not present 1: present
-    rw       : 1;    0: read-only 1: read/write
-    user     : 1;    0: supervisor 1: all
-    write    : 1;    0: write-back 1: write-through caching
-    cache_d  : 1;    0: cached 1: cache disabled
-    accessed : 1;    0: not 1: read or written to
-    ####     : 3;    different for pte and pde
-    avail    : 3;    available for software use
-    frame    : 20;   frame address
+    31              12|11        9|                                 0
+    +---+---/~/---+---+---+---+---+---+---+---+---+---+---+---+---+---+
+    |  Frame Address  |   AVAIL   |  PD / PT  | A | C | W | U | R | P |
+    +---+---/~/---+---+---+---+---+---+---+---+---+---+---+---+---+---+
 
-page directory entry
-    null     : 1;    ignored if size=4Kb, set to 1 if cpu writes to
-    size     : 1;    0: 4 KiB 1: 4 MiB
-    ignore   : 1;    ignored if size=4Kb, same as pte global
+P   If the bit is set, the page is actually in physical memory at the moment.
+R   Read/Write permissions flag.
+    If the bit is set, the page is read/write. Otherwise the page is read-only.
+U   User\Supervisor bit, controls access to the page based on privilege level.
+    If the bit is set, then the page may be accessed by all.
+W   Write-Through abilities of the page.
+    If the bit is set, write-through caching is enabled.
+    If not, then write-back is enabled instead.
+C   Cache Disable bit. If the bit is set, the page will not be cached.
+A   Accessed bit, used to discover whether a page has been read or written to.
+AVAIL
+    Available for software use.
 
-page table entry
-    dirty    : 1;    0: not 1: written to
-    null     : 1;    usually 0
-    global   : 1;    0: not 1: prevent TLB from updating the cache on cr3 reset
+PD
+      2       0
+    +---+---+---+
+    | 0 | S | G |
+    +---+---+---+
+
+G   Global, ignored if size 4 KiB. Otherwise the same as PT Global.
+S   Page Size, stores the page size for that specific entry.
+    If the bit is set, then pages are 4 MiB in size. Otherwise, they are 4 KiB.
+0   Ignored if size 4 KiB. Otherwise set to 1 if the CPU writes to.
+
+PT
+      2       0
+    +---+---+---+
+    | D | 0 | G |
+    +---+---+---+
+
+G   Global, prevents the TLB from updating the address in it's cache if CR3 is
+    reset. The global enable bit in CR4 must be set to enable this feature.
+0   Usually 0.
+D   If the Dirty flag is set, then the page has been written to. This flag is
+    not updated by the CPU, and once set will not unset itself.
 */
 
 #define PE_PRESENT  0x01

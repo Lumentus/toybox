@@ -12,8 +12,6 @@
 // - reserve first 4MB?
 // - paging
 // - virtual memory manager
-// - gdt
-// - idt
 // - panic function, add special format functionality
 // - improve Makefile
 // - seperate section for ro kernel data

@@ -2,7 +2,6 @@
 #define _STDBOOL_H
 
 
-// boolean type and values
 #define bool _Bool
 #define true 1
 #define false 0
