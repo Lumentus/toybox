@@ -32,6 +32,7 @@ dirs:
 	@mkdir -p build/kernel/obj
 	@mkdir -p build/iso/files/boot/grub
 	@mkdir -p build/lib/obj/string
+	@mkdir -p build/lib/obj/stdlib
 
 kernel: build/kernel/$(OUTPUT_kernel)
 
