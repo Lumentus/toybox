@@ -1,4 +1,4 @@
 default=0
 timeout=0
-title ToyBox
+title ToyBoxOS
 kernel /boot/kernel.bin

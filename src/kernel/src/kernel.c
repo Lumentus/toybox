@@ -9,11 +9,9 @@
 #include "idt.h"
 
 // TODO: list
-// - restrict
 // - reserve first 4MB?
 // - paging
 // - virtual memory manager
-// - panic function, add special format functionality
 // - improve Makefile
 // - seperate section for ro kernel data
 // - multiboot header for asm files
@@ -28,7 +26,7 @@ void kmain(uint32_t magic, multiboot_info_t *mb_info)
         return;
     }
 
-    kprintf("Welcome to ToyBox!\n\n");
+    kprintf("Welcome to ToyBoxOS!\n\n");
 
     kprintf("kernel size    : %ukB\n", (uint32_t)&kernel_size / 1024);
     kprintf("kernel vstart  : 0x%x\n", (uint32_t)&kernel_v_start);
